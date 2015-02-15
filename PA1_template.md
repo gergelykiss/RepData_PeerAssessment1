@@ -1,61 +1,79 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Gergely Kiss"
-date: "Saturday, February 14, 2015"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+Gergely Kiss  
+Saturday, February 14, 2015  
 
 ## Loading and preprocessing the data
 Loading and formatting the original data into a data frame. Date coloumns are converted to an appropriate type.
 
-```{r, echo=TRUE}
+
+```r
 data <- read.csv("activity.csv", header=TRUE)
 data$date <- as.Date(data$date)
 ```
 
 Daily steps histogram:
 
-```{r, echo=TRUE}
+
+```r
 steps <- aggregate(x=data$steps, by=list(data$date), FUN="sum")
 names(steps) <- c("date", "steps")
 steps$date <- as.Date(steps$date)
 ```
 
 The histogram shows the daily steps in 10 ranges
-```{r, echo=TRUE}
+
+```r
 hist(steps$steps, breaks=10, xlab="Daily steps taken", ylab="Number of days", main = "Histogram of daily steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
 
 ## What is mean total number of steps taken per day?
 Mean of the total number of steps taken per day:
 
-```{r, echo=TRUE}
+
+```r
 mean(steps$steps, na.rm=TRUE)
+```
+
+```
+## [1] 10766.19
 ```
 
 
 Median of the total number of steps taken per day:
 
-```{r, echo=TRUE}
+
+```r
 median(steps$steps, na.rm=TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r, echo=TRUE}
+
+```r
 interval <- aggregate(x=data$steps, by=list(data$interval), FUN=mean, na.rm=TRUE)
 names(interval) <- c("interval", "averagesteps")
 barplot(interval$averagesteps, xlab="Intervals", ylab="Average steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
 Interval with the highest average step rate:
 
-```{r, echo=TRUE} 
+
+```r
 interval[which.max(interval$averagesteps),1] 
+```
+
+```
+## [1] 835
 ```
 
 
@@ -63,13 +81,19 @@ interval[which.max(interval$averagesteps),1]
 
 The total number of missing values in the dataset:
 
-```{r, echo=TRUE} 
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 I substitute the missing ("NA") values with the average number of steps taken in the same interval during the whole measurement period
 
-```{r, echo=TRUE} 
+
+```r
 nonadata <- data
 for (i in 1:nrow(data)) {
   if (is.na(data[i,1])) {
@@ -80,24 +104,37 @@ for (i in 1:nrow(data)) {
 
 Histogram of the new data set:
 
-```{r, echo=TRUE}
+
+```r
 nonasteps <- aggregate(x=nonadata$steps, by=list(data$date), FUN="sum")
 names(nonasteps) <- c("date", "steps")
 nonasteps$date <- as.Date(nonasteps$date)
 hist(nonasteps$steps, breaks=10, xlab="Daily steps taken", ylab="Number of days", main = "Histogram of daily steps (NAs replaced)" )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+
 Mean of the total number of steps taken per day without NAs
 
-```{r, echo=TRUE}
+
+```r
 mean(nonasteps$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 
 Median of the total number of steps taken per day without NAs
 
-```{r, echo=TRUE}
+
+```r
 median(nonasteps$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 There is no big difference between the original and the "expanded" data set. Since I filled the missing fields with the mean values, the sum median became the same as the mean
@@ -107,59 +144,20 @@ There is no big difference between the original and the "expanded" data set. Sin
 For displaying multiple plots in one figure, I use the multiplot function. 
 Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
 
-```{r, echo=FALSE}
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  require(grid)
 
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
-  numPlots = length(plots)
-
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                    ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-
- if (numPlots==1) {
-    print(plots[[1]])
-
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-```
 
 My system is non-english, so I set the system variables to english for my reviewers to understand the weekend names:
 
-```{r, echo=TRUE}
-Sys.setlocale("LC_TIME", "C")
 
+```r
+Sys.setlocale("LC_TIME", "C")
+```
+
+```
+## [1] "C"
+```
+
+```r
 library(ggplot2)
 
 nonadata$weekday <- 0
@@ -183,5 +181,10 @@ plotwd <- qplot(interval, steps, data = intervalwd, geom="line") + ggtitle("5 mi
 plotwe <- qplot(interval, steps, data = intervalwe, geom="line") + ggtitle("5 minutes activity on weekends")
 
 multiplot(plotwd, plotwe)
+```
 
 ```
+## Loading required package: grid
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
